@@ -44,7 +44,7 @@ All files are written by the bench runner's publish step. Each run arrives as on
 - `<date>`: `YYYY-MM-DD` in UTC, the start date of the first graded run in the run (`2026-10-06`).
 - `<run-id>`: the first 12 hex digits of the SHA-256 of the run's sorted row `run_id`s, joined by newlines (`335b0fbf43e3`). The same graded runs always give the same run id, so a run cannot be published twice under two names. The results branch is `results/<run-id>`.
 - `<bench_version>`: the version of the task set the run used. `prototype` is the prototype measurement from before the current task set. Its labels are provisional, and spatz snapshots do not use it. `1` is the first task set; later task sets get the next number. A bench version name uses only letters, digits, `.`, `_` and `-`.
-- Task ids: a task appears only as an opaque id `t-` plus 16 hex digits (`t-13c5a73d5f981b1b`), together with `task_version` and `task_hash`, the SHA-256 content hash of that task version (`sha256:` plus 64 hex digits). Rows with the same id, version and hash ran the same task.
+- Task ids: a task appears only as an opaque id `t-` plus 16 hex digits (`t-8908c513a2b59bb3`), together with `task_version` and `task_hash` (`hmac-sha256:` plus 64 hex digits). Both are HMAC-SHA256 values under a private key that only the bench holds: the id is keyed on the task id, and the hash is keyed on the content hash of that task version. Without the key, nobody can confirm a guessed task id or task content. Rows with the same id, version and hash ran the same task. The example lines in this README use an example key, so their ids differ from the published ones.
 
 ## Files in a run directory
 
@@ -93,7 +93,7 @@ One line per graded run, sorted by `run_id`, written once.
 | `verified` | `true` when the bench's own grade gave the result |
 
 ```json
-{"run_id":"0043c81e-f604-5138-84f1-1a318e69587a","task_id":"t-13c5a73d5f981b1b","task_version":1,"task_hash":"sha256:1345443f111fe2ad3cab77be37f388fd9a01e7f843bd6e07d53e2344708fcaa2","check":"tests","result":"pass","verified":true}
+{"run_id":"0043c81e-f604-5138-84f1-1a318e69587a","task_id":"t-8908c513a2b59bb3","task_version":1,"task_hash":"hmac-sha256:0b003b66b7eb0232dc457412dbcad541e4d42edd4064a78587f9aaa3a7ea5e8e","check":"tests","result":"pass","verified":true}
 ```
 
 ### `usage.jsonl`
@@ -108,7 +108,7 @@ One line per graded run, sorted by `run_id`, written once.
 | `cost_usd` | Cost the harness reported in USD, or `null` when it reported none. The bench never estimates it here. |
 
 ```json
-{"run_id":"0043c81e-f604-5138-84f1-1a318e69587a","duration_s":81.21,"tokens":{"input":14615,"output":3748,"cache_read":122880,"cache_write":0,"reasoning":1629},"cost_usd":null}
+{"run_id":"0043c81e-f604-5138-84f1-1a318e69587a","duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null}
 ```
 
 ## Rows
@@ -116,7 +116,7 @@ One line per graded run, sorted by `run_id`, written once.
 `rows/<bench_version>.jsonl` holds one `spatz-eval-row/1` row per graded run of that bench version, over all runs. It is append-only: a results PR adds only the rows whose `run_id` the file does not hold yet. It never changes or removes a line. Rows follow the contract in [spatz#68](https://github.com/lorenzh/spatz/issues/68). The only extra field is `task_hash`, which spatz ignores.
 
 ```json
-{"schema":"spatz-eval-row/1","run_id":"0043c81e-f604-5138-84f1-1a318e69587a","bench_version":"prototype","task_id":"t-13c5a73d5f981b1b","task_version":1,"task_type":"code.feature","difficulty":"hard","criticality":"none","harness":"codex","agent_version":"unknown","model":"openai/gpt-6-luna","effort":"high","answered_model":"gpt-6-luna","model_version":null,"attempt":1,"result":"pass","check":"tests","judge":null,"duration_s":81.21,"tokens":{"input":14615,"output":3748,"cache_read":122880,"cache_write":0,"reasoning":1629},"cost_usd":null,"started_at":"2026-10-06T03:27:10.595Z","contributor":"lorenzh","verified":true,"task_hash":"sha256:1345443f111fe2ad3cab77be37f388fd9a01e7f843bd6e07d53e2344708fcaa2"}
+{"schema":"spatz-eval-row/1","run_id":"0043c81e-f604-5138-84f1-1a318e69587a","bench_version":"prototype","task_id":"t-8908c513a2b59bb3","task_version":1,"task_type":"code.feature","difficulty":"hard","criticality":"none","harness":"codex","agent_version":"unknown","model":"openai/gpt-6-luna","effort":"high","answered_model":"gpt-6-luna","model_version":null,"attempt":1,"result":"pass","check":"tests","judge":null,"duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null,"started_at":"2026-10-06T03:27:10.595Z","contributor":"lorenzh","verified":true,"task_hash":"hmac-sha256:0b003b66b7eb0232dc457412dbcad541e4d42edd4064a78587f9aaa3a7ea5e8e"}
 ```
 
 ## Reports
@@ -162,7 +162,7 @@ sqlite3 measurements.db "SELECT model, effort, count(*) AS runs, round(avg(resul
 
 ## What is published
 
-Only an allowlist: the files above, and in them only the fields listed. The publish step builds each file from explicitly picked fields. Before it commits, it checks every file and field against the allowlist.
+Only an allowlist: the files above, and in them only the fields listed. Each row field has a value rule: harness and model come from fixed lists, and versions, judge panel ids and contributors must match a pattern. The run files, reports and pull request text are rendered from the validated rows only. Before it pushes, the publish step compares every file of the commit, with its path and mode, byte for byte with that rendering.
 
 ## What is never published
 
