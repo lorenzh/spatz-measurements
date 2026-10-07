@@ -176,4 +176,4 @@ Publishing tasks would contaminate the benchmark: a model trained on them would 
 
 ## License
 
-The data in this repository (`rows/`, `runs/`, `reports/`) is proposed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Attribute it as "spatz-measurements, Lorenz Hilpert". A `LICENSE` file with the full text follows once the license is confirmed.
+The data in this repository (`rows/`, `runs/`, `reports/`) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Attribute it as "spatz-measurements, Lorenz Hilpert". The full text is in [LICENSE](LICENSE).
