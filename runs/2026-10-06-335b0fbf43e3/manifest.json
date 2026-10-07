@@ -119,5 +119,90 @@
       "fail": 14
     }
   ],
-  "rejected": 6
+  "rejected": 6,
+  "prices": {
+    "priced": "backfill",
+    "unit": "USD per 1M tokens",
+    "openrouter": {
+      "fetched_at": "2026-10-07T18:21:55.359Z"
+    },
+    "models": {
+      "anthropic/claude-opus-5.5": {
+        "input": {
+          "usd": 4,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.2,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 8,
+          "source": "official",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "date": "2026-10-07"
+        },
+        "output": {
+          "usd": 20,
+          "source": "openrouter"
+        }
+      },
+      "anthropic/claude-sonnet-5.5": {
+        "input": {
+          "usd": 2,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.2,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 4,
+          "source": "official",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "date": "2026-10-07"
+        },
+        "output": {
+          "usd": 10,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6-luna": {
+        "input": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.01,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 0.125,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 0.5,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6.1-sol": {
+        "input": {
+          "usd": 2,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 2.5,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 10,
+          "source": "openrouter"
+        }
+      }
+    }
+  }
 }
