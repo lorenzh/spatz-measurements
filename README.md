@@ -62,8 +62,9 @@ One JSON object, written once when the run is published.
 | `results` | Counts of `pass`, `partial` and `fail` |
 | `cells` | One entry per `harness`, `model` and `effort`, with `runs`, `pass`, `partial` and `fail` |
 | `rejected` | Number of rejected runs |
+| `prices` | The price stamp: the list prices behind every `estimated_cost_usd` of the run. See [Cost estimates](#cost-estimates). |
 
-Example (only one of the 12 cells shown):
+Example (only one of the 12 cells and one of the 4 models shown):
 
 ```json
 {
@@ -76,7 +77,20 @@ Example (only one of the 12 cells shown):
   "cells": [
     { "harness": "claude-code", "model": "anthropic/claude-opus-5.5", "effort": "high", "runs": 184, "pass": 174, "partial": 0, "fail": 10 }
   ],
-  "rejected": 6
+  "rejected": 6,
+  "prices": {
+    "priced": "backfill",
+    "unit": "USD per 1M tokens",
+    "openrouter": { "fetched_at": "2026-10-07T18:21:55.359Z" },
+    "models": {
+      "anthropic/claude-opus-5.5": {
+        "input": { "usd": 4, "source": "openrouter" },
+        "cache_read": { "usd": 0.2, "source": "openrouter" },
+        "cache_write": { "usd": 8, "source": "official", "url": "https://platform.claude.com/docs/en/about-claude/pricing", "date": "2026-10-07" },
+        "output": { "usd": 20, "source": "openrouter" }
+      }
+    }
+  }
 }
 ```
 
@@ -105,19 +119,61 @@ One line per graded run, sorted by `run_id`, written once.
 | `run_id` | UUID of the graded run |
 | `duration_s` | Wall time of the agent in seconds |
 | `tokens` | `input` (uncached input), `output` (includes reasoning), `cache_read`, `cache_write` and `reasoning` (a breakdown of `output`, do not add it again). `null` means the harness did not report the counter. |
-| `cost_usd` | Cost the harness reported in USD, or `null` when it reported none. The bench never estimates it here. |
+| `cost_usd` | Cost the harness reported in USD, or `null` when it reported none. Never an estimate. |
+| `estimated_cost_usd` | Cost at list prices in USD, or `null` when a needed price is unknown. Never billed cost. See [Cost estimates](#cost-estimates). |
 
 ```json
-{"run_id":"0043c81e-f604-5138-84f1-1a318e69587a","duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null}
+{"run_id":"0043c81e-f604-5138-84f1-1a318e69587a","duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null,"estimated_cost_usd":0.0045643}
 ```
 
 ## Rows
 
-`rows/<bench_version>.jsonl` holds one `spatz-eval-row/1` row per graded run of that bench version, over all runs. It is append-only: a results PR adds only the rows whose `run_id` the file does not hold yet. It never changes or removes a line. Rows follow the contract in [spatz#68](https://github.com/lorenzh/spatz/issues/68). The only extra field is `task_hash`, which spatz ignores.
+`rows/<bench_version>.jsonl` holds one `spatz-eval-row/1` row per graded run of that bench version, over all runs. It is append-only: a results PR adds only the rows whose `run_id` no rows file holds yet. It never removes a line, and it changes one only in a backfill, which adds `estimated_cost_usd` and nothing else (see [Cost estimates](#cost-estimates)). Rows follow the contract in [spatz#68](https://github.com/lorenzh/spatz/issues/68). The only extra field is `task_hash`, which spatz ignores.
 
 ```json
-{"schema":"spatz-eval-row/1","run_id":"0043c81e-f604-5138-84f1-1a318e69587a","bench_version":"prototype","task_id":"t-8908c513a2b59bb3","task_version":1,"task_type":"code.feature","difficulty":"hard","criticality":"none","harness":"codex","agent_version":"unknown","model":"openai/gpt-6-luna","effort":"high","answered_model":"gpt-6-luna","model_version":null,"attempt":1,"result":"pass","check":"tests","judge":null,"duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null,"started_at":"2026-10-06T03:27:10.595Z","contributor":"lorenzh","verified":true,"task_hash":"hmac-sha256:0b003b66b7eb0232dc457412dbcad541e4d42edd4064a78587f9aaa3a7ea5e8e"}
+{"schema":"spatz-eval-row/1","run_id":"0043c81e-f604-5138-84f1-1a318e69587a","bench_version":"prototype","task_id":"t-8908c513a2b59bb3","task_version":1,"task_type":"code.feature","difficulty":"hard","criticality":"none","harness":"codex","agent_version":"unknown","model":"openai/gpt-6-luna","effort":"high","answered_model":"gpt-6-luna","model_version":null,"attempt":1,"result":"pass","check":"tests","judge":null,"duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null,"estimated_cost_usd":0.0045643,"started_at":"2026-10-06T03:27:10.595Z","contributor":"lorenzh","verified":true,"task_hash":"hmac-sha256:0b003b66b7eb0232dc457412dbcad541e4d42edd4064a78587f9aaa3a7ea5e8e"}
 ```
+
+## Cost estimates
+
+`cost_usd` is the billed cost the harness reported. It is `null` for Codex, which reports no cost, and for subscription runs, which have no bill. So it cannot compare harnesses.
+
+`estimated_cost_usd` is the same yardstick for every row, Claude and Codex alike. It is a list-price estimate, never a billed cost:
+
+```
+estimated_cost_usd = input × input price
+                   + cache_read × cache read price
+                   + cache_write × cache write price
+                   + output × output price
+```
+
+Prices are in USD per 1M tokens. `reasoning` is part of `output`, and both providers bill reasoning as output, so it is not added again. A `null` counter adds nothing. A nonzero counter whose price is unknown makes the estimate `null`; a price is never guessed. The usage example above: 14,615 × $0.10 + 122,880 × $0.01 + 3,748 × $0.50 per 1M = $0.0045643.
+
+### Sources
+
+- **OpenRouter** ([`/api/v1/models`](https://openrouter.ai/api/v1/models)): fetched when the run is published. It is the first source for every price.
+- **Official pricing pages**, pinned in the bench with a date: [Anthropic](https://platform.claude.com/docs/en/about-claude/pricing) and [OpenAI](https://developers.openai.com/api/docs/pricing). They fill every price OpenRouter does not list.
+  - Anthropic cache writes always use the official 1-hour rate, which Claude Code bills. OpenRouter lists the 5-minute rate. At the 1-hour rate, the estimate equals the cost Claude Code reported on every prototype Claude row.
+  - The official OpenAI page lists no cache write price. That price comes from OpenRouter only.
+
+### The price stamp
+
+`prices` in `manifest.json` records the prices of every model in the run, so anyone can recompute each estimate:
+
+| Field | Content |
+|-------|---------|
+| `priced` | `at_publish`, or `backfill` for rows published before estimates existed |
+| `unit` | `USD per 1M tokens` |
+| `openrouter` | `fetched_at` (ISO 8601 UTC) when the fetch worked, else `fetch_failed` with the reason (`timeout`, `network error`, `invalid response` or `http <status>`). Without a fetch, every price comes from the official table. |
+| `models` | Per model: `input`, `cache_read`, `cache_write` and `output`, each with `usd` and `source`. The source is `openrouter`, `official` (with the page `url` and the table `date`) or `none` (`usd` is `null`). |
+
+The publish step checks every row's estimate against the stamp before it pushes.
+
+### Priced once
+
+A row is priced once, when its run is published. Later price changes do not change it. A results PR never overwrites a row, and a `run_id` that any rows file already holds is refused.
+
+The only exception is the backfill of the prototype rows, which were published before estimates existed. It was an explicit opt-in: it added `estimated_cost_usd` to those rows, and every other field stayed byte-equal ([#5](https://github.com/lorenzh/spatz-measurements/pull/5)). It then added the stamp with `priced: "backfill"` to the run manifest ([#7](https://github.com/lorenzh/spatz-measurements/pull/7)).
 
 ## Reports
 
@@ -139,7 +195,7 @@ CREATE TABLE rows (
   bench_version TEXT, task_id TEXT, task_version INTEGER, task_hash TEXT,
   task_type TEXT, difficulty TEXT, harness TEXT, model TEXT, effort TEXT,
   result TEXT, verified INTEGER, duration_s REAL,
-  input_tokens INTEGER, output_tokens INTEGER, cost_usd REAL,
+  input_tokens INTEGER, output_tokens INTEGER, cost_usd REAL, estimated_cost_usd REAL,
   started_at TEXT, row TEXT NOT NULL
 );
 INSERT OR IGNORE INTO rows
@@ -148,7 +204,7 @@ SELECT value->>'run_id', value->>'bench_version', value->>'task_id',
        value->>'difficulty', value->>'harness', value->>'model', value->>'effort',
        value->>'result', value->>'verified', value->>'duration_s',
        value->>'$.tokens.input', value->>'$.tokens.output', value->>'cost_usd',
-       value->>'started_at', value
+       value->>'estimated_cost_usd', value->>'started_at', value
 FROM json_each(readfile('rows.json'));
 SQL
 rm rows.json
@@ -158,6 +214,12 @@ Example query, pass rate per model and effort:
 
 ```sh
 sqlite3 measurements.db "SELECT model, effort, count(*) AS runs, round(avg(result = 'pass'), 3) AS pass_rate FROM rows GROUP BY model, effort"
+```
+
+Estimated cost per model at list prices:
+
+```sh
+sqlite3 measurements.db "SELECT model, count(*) AS runs, round(sum(estimated_cost_usd), 4) AS estimated_usd FROM rows GROUP BY model"
 ```
 
 ## What is published
