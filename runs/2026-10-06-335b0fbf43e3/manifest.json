@@ -119,5 +119,84 @@
       "fail": 14
     }
   ],
-  "rejected": 6
+  "rejected": 6,
+  "prices": {
+    "priced": "backfill",
+    "fetched_at": "2026-10-07T18:01:07.997Z",
+    "unit": "USD per 1M tokens",
+    "models": {
+      "anthropic/claude-opus-5.5": {
+        "input": {
+          "usd": 4,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.2,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 8,
+          "source": "official"
+        },
+        "output": {
+          "usd": 20,
+          "source": "openrouter"
+        }
+      },
+      "anthropic/claude-sonnet-5.5": {
+        "input": {
+          "usd": 2,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.2,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 4,
+          "source": "official"
+        },
+        "output": {
+          "usd": 10,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6-luna": {
+        "input": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.01,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 0.125,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 0.5,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6.1-sol": {
+        "input": {
+          "usd": 2,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 2.5,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 10,
+          "source": "openrouter"
+        }
+      }
+    }
+  }
 }
