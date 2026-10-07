@@ -1,0 +1,123 @@
+{
+  "run_id": "335b0fbf43e3",
+  "bench_version": "prototype",
+  "started_at": "2026-10-06T00:48:10.000Z",
+  "finished_at": "2026-10-06T03:56:22.600Z",
+  "runs": 1955,
+  "results": {
+    "pass": 1724,
+    "partial": 0,
+    "fail": 231
+  },
+  "cells": [
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-opus-5.5",
+      "effort": "high",
+      "runs": 184,
+      "pass": 174,
+      "partial": 0,
+      "fail": 10
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-opus-5.5",
+      "effort": "low",
+      "runs": 184,
+      "pass": 170,
+      "partial": 0,
+      "fail": 14
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-opus-5.5",
+      "effort": "medium",
+      "runs": 182,
+      "pass": 175,
+      "partial": 0,
+      "fail": 7
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-sonnet-5.5",
+      "effort": "high",
+      "runs": 184,
+      "pass": 171,
+      "partial": 0,
+      "fail": 13
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-sonnet-5.5",
+      "effort": "low",
+      "runs": 183,
+      "pass": 158,
+      "partial": 0,
+      "fail": 25
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-sonnet-5.5",
+      "effort": "medium",
+      "runs": 184,
+      "pass": 166,
+      "partial": 0,
+      "fail": 18
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-luna",
+      "effort": "high",
+      "runs": 140,
+      "pass": 116,
+      "partial": 0,
+      "fail": 24
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-luna",
+      "effort": "low",
+      "runs": 142,
+      "pass": 96,
+      "partial": 0,
+      "fail": 46
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-luna",
+      "effort": "medium",
+      "runs": 140,
+      "pass": 108,
+      "partial": 0,
+      "fail": 32
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6.1-sol",
+      "effort": "high",
+      "runs": 146,
+      "pass": 132,
+      "partial": 0,
+      "fail": 14
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6.1-sol",
+      "effort": "low",
+      "runs": 145,
+      "pass": 131,
+      "partial": 0,
+      "fail": 14
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6.1-sol",
+      "effort": "medium",
+      "runs": 141,
+      "pass": 127,
+      "partial": 0,
+      "fail": 14
+    }
+  ],
+  "rejected": 6
+}
