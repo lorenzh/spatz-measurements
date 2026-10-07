@@ -1,0 +1,80 @@
+{
+  "run_id": "17e49b62d03a",
+  "bench_version": "1",
+  "started_at": "2026-10-07T18:26:00.353Z",
+  "finished_at": "2026-10-07T21:05:37.821Z",
+  "runs": 56,
+  "results": {
+    "pass": 36,
+    "partial": 0,
+    "fail": 20
+  },
+  "cells": [
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-sonnet-5.5",
+      "effort": "medium",
+      "runs": 28,
+      "pass": 17,
+      "partial": 0,
+      "fail": 11
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-luna",
+      "effort": "medium",
+      "runs": 28,
+      "pass": 19,
+      "partial": 0,
+      "fail": 9
+    }
+  ],
+  "rejected": 0,
+  "prices": {
+    "priced": "at_publish",
+    "unit": "USD per 1M tokens",
+    "openrouter": {
+      "fetched_at": "2026-10-07T21:05:57.608Z"
+    },
+    "models": {
+      "anthropic/claude-sonnet-5.5": {
+        "input": {
+          "usd": 2,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 4,
+          "source": "official",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "date": "2026-10-07"
+        },
+        "output": {
+          "usd": 10,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6-luna": {
+        "input": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.01,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 0.125,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 0.5,
+          "source": "openrouter"
+        }
+      }
+    }
+  }
+}
