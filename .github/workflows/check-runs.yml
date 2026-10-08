@@ -1,0 +1,40 @@
+name: Check runs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use the check script of the base branch
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # A PR must not weaken the check that judges it: run the base's copy when it has one.
+          if git cat-file -e "$BASE_SHA:scripts/check-runs.mjs" 2>/dev/null; then
+            git show "$BASE_SHA:scripts/check-runs.mjs" > "$RUNNER_TEMP/check-runs.mjs"
+          else
+            cp scripts/check-runs.mjs "$RUNNER_TEMP/check-runs.mjs"
+          fi
+      - name: Allowlist and value rules of every run folder
+        run: node "$RUNNER_TEMP/check-runs.mjs"
+      - name: A results PR adds exactly one new run folder
+        # Migration, docs and backfill PRs carry the label `maintenance` and skip this step only.
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'maintenance') }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node "$RUNNER_TEMP/check-runs.mjs" --pr "$BASE_SHA"
+      - name: Tests of the check script
+        run: node --test scripts/check-runs.test.mjs
