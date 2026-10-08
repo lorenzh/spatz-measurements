@@ -411,4 +411,3 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 	console.log(errors.length ? `${errors.length} problems` : "all run folders pass");
 	process.exit(errors.length ? 1 : 0);
 }
-// ruleset probe
