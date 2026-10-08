@@ -53,6 +53,19 @@ test("files outside the allowlist, free text and non-projections fail", () => {
 	fails((d, dir) => cpSync(d, join(dir, "2026-10-07-aaaaaaaaaaaa"), { recursive: true }), /is in runs\/.* and runs\//);
 });
 
+test("the full bench's baseline models are allowed in rows and price stamps", () => {
+	for (const model of ["anthropic/claude-fable-5.1", "openai/gpt-6-astra"]) {
+		const errors = check((d) => {
+			editLine(join(d, "rows.jsonl"), (o) => { o.model = model; });
+			const p = join(d, "manifest.json");
+			const m = JSON.parse(readFileSync(p, "utf8"));
+			m.prices.models[model] = Object.values(m.prices.models)[0];
+			writeFileSync(p, `${JSON.stringify(m, null, 2)}\n`);
+		});
+		assert.ok(!errors.some((e) => /bad model/.test(e)), errors.join("; "));
+	}
+});
+
 test("a results PR only adds the files of one new run folder", () => {
 	const add = (f) => ["grades.jsonl", "manifest.json", "report.md", "rows.jsonl", "usage.jsonl"].map((n) => `A\truns/${f}/${n}`);
 	assert.deepEqual(prErrors(add(RUN), () => false), []);
