@@ -1,8 +1,27 @@
-# Measured hardness
+# Run 2026-10-06-335b0fbf43e3 (bench prototype)
+
+## Pass rates
+
+| harness | model | effort | runs | pass | partial | fail | pass rate |
+|---|---|---|---|---|---|---|---|
+| claude-code | anthropic/claude-opus-5.5 | high | 184 | 174 | 0 | 10 | 94.6% |
+| claude-code | anthropic/claude-opus-5.5 | low | 184 | 170 | 0 | 14 | 92.4% |
+| claude-code | anthropic/claude-opus-5.5 | medium | 182 | 175 | 0 | 7 | 96.2% |
+| claude-code | anthropic/claude-sonnet-5.5 | high | 184 | 171 | 0 | 13 | 92.9% |
+| claude-code | anthropic/claude-sonnet-5.5 | low | 183 | 158 | 0 | 25 | 86.3% |
+| claude-code | anthropic/claude-sonnet-5.5 | medium | 184 | 166 | 0 | 18 | 90.2% |
+| codex | openai/gpt-6-luna | high | 140 | 116 | 0 | 24 | 82.9% |
+| codex | openai/gpt-6-luna | low | 142 | 96 | 0 | 46 | 67.6% |
+| codex | openai/gpt-6-luna | medium | 140 | 108 | 0 | 32 | 77.1% |
+| codex | openai/gpt-6.1-sol | high | 146 | 132 | 0 | 14 | 90.4% |
+| codex | openai/gpt-6.1-sol | low | 145 | 131 | 0 | 14 | 90.3% |
+| codex | openai/gpt-6.1-sol | medium | 141 | 127 | 0 | 14 | 90.1% |
+
+## Measured hardness
 
 Failure rate = share of runs whose result is not `pass`. Difficulty is the rubric label from `task.json`; this report never relabels it.
 
-## Tasks
+### Tasks
 
 | task | type | difficulty | runs | failures | failure rate | universal |
 |---|---|---|---|---|---|---|
@@ -47,7 +66,7 @@ Failure rate = share of runs whose result is not `pass`. Difficulty is the rubri
 | t-f5f6691d25d54a10@1 | code.feature | hard | 39 | 3 | 7.7% | - |
 | t-f7c12ff7cc3ceffc@1 | code.bugfix | easy | 55 | 0 | 0.0% | pass |
 
-## Cells (95% interval clustered by task)
+### Cells (95% interval clustered by task)
 
 | type | difficulty | model | effort | tasks | runs | failure rate | interval |
 |---|---|---|---|---|---|---|---|
@@ -136,7 +155,7 @@ Failure rate = share of runs whose result is not `pass`. Difficulty is the rubri
 | code.refactor | medium | openai/gpt-6.1-sol | low | 2 | 7 | 57.1% | 0.0% – 100.0% |
 | code.refactor | medium | openai/gpt-6.1-sol | medium | 2 | 7 | 71.4% | 0.0% – 100.0% |
 
-## Audit: every run failed
+### Audit: every run failed
 
 Check each against its reference solution and requirements. A defective task gets a new version or a replacement before the M2 freeze.
 

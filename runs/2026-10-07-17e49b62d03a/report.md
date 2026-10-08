@@ -1,8 +1,17 @@
-# Measured hardness
+# Run 2026-10-07-17e49b62d03a (bench 1)
+
+## Pass rates
+
+| harness | model | effort | runs | pass | partial | fail | pass rate |
+|---|---|---|---|---|---|---|---|
+| claude-code | anthropic/claude-sonnet-5.5 | medium | 28 | 17 | 0 | 11 | 60.7% |
+| codex | openai/gpt-6-luna | medium | 28 | 19 | 0 | 9 | 67.9% |
+
+## Measured hardness
 
 Failure rate = share of runs whose result is not `pass`. Difficulty is the rubric label from `task.json`; this report never relabels it.
 
-## Tasks
+### Tasks
 
 | task | type | difficulty | runs | failures | failure rate | universal |
 |---|---|---|---|---|---|---|
@@ -35,7 +44,7 @@ Failure rate = share of runs whose result is not `pass`. Difficulty is the rubri
 | t-f1694629b5fab02f@1 | code.feature | easy | 2 | 0 | 0.0% | pass |
 | t-fceec1ea2c477ead@2 | ops | medium | 2 | 1 | 50.0% | - |
 
-## Cells (95% interval clustered by task)
+### Cells (95% interval clustered by task)
 
 | type | difficulty | model | effort | tasks | runs | failure rate | interval |
 |---|---|---|---|---|---|---|---|
@@ -78,7 +87,7 @@ Failure rate = share of runs whose result is not `pass`. Difficulty is the rubri
 | review | medium | anthropic/claude-sonnet-5.5 | medium | 6 | 6 | 83.3% | 50.7% – 100.0% |
 | review | medium | openai/gpt-6-luna | medium | 6 | 6 | 50.0% | 6.2% – 93.8% |
 
-## Audit: every run failed
+### Audit: every run failed
 
 Check each against its reference solution and requirements. A defective task gets a new version or a replacement before the M2 freeze.
 

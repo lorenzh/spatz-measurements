@@ -2,7 +2,7 @@
 
 Results of spatz benchmark runs: which model, at which effort, passed which kind of task, at what token cost. [spatz](https://github.com/lorenzh/spatz) imports the rows as outcome data before live use.
 
-All files are written by the bench runner's publish step. Each run arrives as one pull request on a branch `results/<run-id>`. Do not edit the files by hand.
+All files are written by the bench runner's publish step. Each run is one self-contained folder and arrives as one pull request on a branch `results/<run-id>` that only adds that folder. There are no shared files, so two results PRs never conflict. Do not edit the files by hand.
 
 ## Folder structure
 
@@ -10,28 +10,26 @@ All files are written by the bench runner's publish step. Each run arrives as on
 .
 ├── README.md
 ├── .gitattributes
-├── rows/
-│   ├── prototype.jsonl           # all rows of bench version "prototype"
-│   └── <bench_version>.jsonl     # one file per bench version
-├── runs/
-│   └── <date>-<run-id>/          # one directory per published run
-│       ├── manifest.json
-│       ├── grades.jsonl
-│       └── usage.jsonl
-└── reports/
-    └── <bench_version>/
-        ├── hardness.md
-        └── pass-rates.md
+├── .github/workflows/check-runs.yml   # checks every pull request
+├── scripts/check-runs.mjs             # the check, Node only
+└── runs/
+    └── <date>-<run-id>/               # one self-contained folder per published run
+        ├── manifest.json
+        ├── rows.jsonl
+        ├── grades.jsonl
+        ├── usage.jsonl
+        └── report.md
 ```
 
-| Path | Format | Written | Content |
-|------|--------|---------|---------|
-| `rows/<bench_version>.jsonl` | JSON Lines | Append-only | Every graded run of one bench version as a `spatz-eval-row/1` row |
-| `runs/<date>-<run-id>/manifest.json` | JSON | Once | Summary of one run |
-| `runs/<date>-<run-id>/grades.jsonl` | JSON Lines | Once | Grade result of each graded run in the run |
-| `runs/<date>-<run-id>/usage.jsonl` | JSON Lines | Once | Tokens, cost and duration of each graded run in the run |
-| `reports/<bench_version>/hardness.md` | Markdown | Rewritten by every results PR | Measured failure rates from all rows of the bench version |
-| `reports/<bench_version>/pass-rates.md` | Markdown | Rewritten by every results PR | Pass rates from all rows of the bench version |
+| Path in `runs/<date>-<run-id>/` | Format | Content |
+|------|--------|---------|
+| `manifest.json` | JSON | Summary of the run and its price stamp |
+| `rows.jsonl` | JSON Lines | Every graded run of the run as a `spatz-eval-row/1` row |
+| `grades.jsonl` | JSON Lines | Grade result of each graded run |
+| `usage.jsonl` | JSON Lines | Tokens, cost and duration of each graded run |
+| `report.md` | Markdown | Pass rates and measured hardness of this run's rows |
+
+Every file is written once, when its run is published. To see all runs at once, aggregate the folders (see [Aggregate all runs](#aggregate-all-runs)).
 
 ### Terms
 
@@ -126,9 +124,9 @@ One line per graded run, sorted by `run_id`, written once.
 {"run_id":"0043c81e-f604-5138-84f1-1a318e69587a","duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null,"estimated_cost_usd":0.0045643}
 ```
 
-## Rows
+### `rows.jsonl`
 
-`rows/<bench_version>.jsonl` holds one `spatz-eval-row/1` row per graded run of that bench version, over all runs. It is append-only: a results PR adds only the rows whose `run_id` no rows file holds yet. It never removes a line, and it changes one only in a backfill, which adds `estimated_cost_usd` and nothing else (see [Cost estimates](#cost-estimates)). Rows follow the contract in [spatz#68](https://github.com/lorenzh/spatz/issues/68). The only extra field is `task_hash`, which spatz ignores.
+One `spatz-eval-row/1` row per graded run, sorted by `run_id`, written once. A `run_id` appears in exactly one run folder. A file changes only in a backfill, which adds `estimated_cost_usd` to the rows of its own folder and nothing else (see [Cost estimates](#cost-estimates)). Rows follow the contract in [spatz#68](https://github.com/lorenzh/spatz/issues/68). The only extra field is `task_hash`, which spatz ignores.
 
 ```json
 {"schema":"spatz-eval-row/1","run_id":"0043c81e-f604-5138-84f1-1a318e69587a","bench_version":"prototype","task_id":"t-8908c513a2b59bb3","task_version":1,"task_type":"code.feature","difficulty":"hard","criticality":"none","harness":"codex","agent_version":"unknown","model":"openai/gpt-6-luna","effort":"high","answered_model":"gpt-6-luna","model_version":null,"attempt":1,"result":"pass","check":"tests","judge":null,"duration_s":81.21,"tokens":{"input":14615,"cache_read":122880,"cache_write":0,"output":3748,"reasoning":1629},"cost_usd":null,"estimated_cost_usd":0.0045643,"started_at":"2026-10-06T03:27:10.595Z","contributor":"lorenzh","verified":true,"task_hash":"hmac-sha256:0b003b66b7eb0232dc457412dbcad541e4d42edd4064a78587f9aaa3a7ea5e8e"}
@@ -171,23 +169,32 @@ The publish step checks every row's estimate against the stamp before it pushes.
 
 ### Priced once
 
-A row is priced once, when its run is published. Later price changes do not change it. A results PR never overwrites a row, and a `run_id` that any rows file already holds is refused.
+A row is priced once, when its run is published. Later price changes do not change it. A results PR never overwrites a file: a run whose folder exists is refused, and so is a `run_id` that any `runs/*/rows.jsonl` already holds.
 
-The only exception is the backfill of the prototype rows, which were published before estimates existed. It was an explicit opt-in: it added `estimated_cost_usd` to those rows, and every other field stayed byte-equal ([#5](https://github.com/lorenzh/spatz-measurements/pull/5)). It then added the stamp with `priced: "backfill"` to the run manifest ([#7](https://github.com/lorenzh/spatz-measurements/pull/7)).
+The only exception is the backfill of the prototype rows, which were published before estimates existed. It was an explicit opt-in: it added `estimated_cost_usd` to those rows, and every other field stayed byte-equal ([#5](https://github.com/lorenzh/spatz-measurements/pull/5)). It then added the stamp with `priced: "backfill"` to the run manifest ([#7](https://github.com/lorenzh/spatz-measurements/pull/7)). Both changed only that run's own files. A later backfill may likewise touch only its own run folder.
 
-## Reports
+### `report.md`
 
-Every results PR rewrites the reports of its bench version from all lines of `rows/<bench_version>.jsonl`.
+Written once from the run's own rows, never from other runs:
 
-- `hardness.md`: failure rate (share of runs whose result is not `pass`) per task version, and per task type, difficulty, model and effort with a 95% interval clustered by task. The last section lists task versions where every run failed. The difficulty column is the label the task was written with; a report never relabels it.
-- `pass-rates.md`: runs, `pass`, `partial` and `fail` counts and the pass rate per harness, model and effort.
+- **Pass rates:** runs, `pass`, `partial` and `fail` counts and the pass rate per harness, model and effort.
+- **Measured hardness:** failure rate (share of runs whose result is not `pass`) per task version, and per task type, difficulty, model and effort with a 95% interval clustered by task. The last section lists task versions where every run failed. The difficulty column is the label the task was written with; a report never relabels it.
 
-## Rebuild a SQLite database from the rows
+Reports across runs come from the rows: see [Aggregate all runs](#aggregate-all-runs).
 
-The rows are the complete data; `runs/` and `reports/` can be derived from them. This builds `measurements.db` with one table `rows`: one line per graded run, the main fields as columns and the full row as JSON in `row`. It needs `jq` and `sqlite3` 3.38 or later. Run it in the repository root.
+## Aggregate all runs
+
+The rows are the complete data. All rows of all runs, as one JSON Lines stream (one bench version: filter on `bench_version`):
 
 ```sh
-jq -cs . rows/*.jsonl > rows.json
+cat runs/*/rows.jsonl
+cat runs/*/rows.jsonl | jq -c 'select(.bench_version == "1")'
+```
+
+This builds `measurements.db` with one table `rows` over all runs: one line per graded run, the main fields as columns and the full row as JSON in `row`. It needs `jq` and `sqlite3` 3.38 or later. Run it in the repository root.
+
+```sh
+cat runs/*/rows.jsonl | jq -cs . > rows.json
 sqlite3 measurements.db <<'SQL'
 DROP TABLE IF EXISTS rows;
 CREATE TABLE rows (
@@ -226,6 +233,12 @@ sqlite3 measurements.db "SELECT model, count(*) AS runs, round(sum(estimated_cos
 
 Only an allowlist: the files above, and in them only the fields listed. Each row field has a value rule: harness and model come from fixed lists, and versions, judge panel ids and contributors must match a pattern. The run files, reports and pull request text are rendered from the validated rows only. Before it pushes, the publish step compares every file of the commit, with its path and mode, byte for byte with that rendering.
 
+This repo checks every pull request on its own (`.github/workflows/check-runs.yml`, `scripts/check-runs.mjs`, no bench code needed):
+
+- A results PR may only add files, all inside exactly one new `runs/<date>-<run-id>/` folder. A PR that changes or deletes a file, touches a second folder or adds a file elsewhere fails. Migration, docs and backfill PRs carry the label `maintenance`, which skips this rule only.
+- Every run folder must hold exactly the five files above. Each row must pass the value rules and be in canonical form. `grades.jsonl` and `usage.jsonl` must be exact projections of the rows, and `manifest.json` exactly what the rows and the price stamp give. Every estimate must match the stamp, `report.md` may hold only table rows and fixed lines, and no `run_id` may appear in two folders.
+- The workflow runs the base branch's copy of the check, so a PR cannot weaken the check that judges it. Run it locally with `node scripts/check-runs.mjs` and `node --test scripts/check-runs.test.mjs`.
+
 ## What is never published
 
 - Task ids, prompts, task content, reference solutions and hidden checks.
@@ -238,4 +251,4 @@ Publishing tasks would contaminate the benchmark: a model trained on them would 
 
 ## License
 
-The data in this repository (`rows/`, `runs/`, `reports/`) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Attribute it as "spatz-measurements, Lorenz Hilpert". The full text is in [LICENSE](LICENSE).
+The data in this repository (`runs/`) is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Attribute it as "spatz-measurements, Lorenz Hilpert". The full text is in [LICENSE](LICENSE).
