@@ -21,8 +21,10 @@ export const FILES = [
 ];
 const FOLDER = /^\d{4}-\d\d-\d\d-[0-9a-f]{12}$/;
 const MODELS = [
+	"anthropic/claude-fable-5.1",
 	"anthropic/claude-opus-5.5",
 	"anthropic/claude-sonnet-5.5",
+	"openai/gpt-6-astra",
 	"openai/gpt-6.1-sol",
 	"openai/gpt-6-luna",
 ];
