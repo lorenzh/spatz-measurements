@@ -1,0 +1,264 @@
+{
+  "run_id": "37028323f6e6",
+  "bench_version": "1",
+  "started_at": "2026-10-08T22:13:56.098Z",
+  "finished_at": "2026-10-10T01:45:29.975Z",
+  "runs": 1072,
+  "results": {
+    "pass": 853,
+    "partial": 0,
+    "fail": 219
+  },
+  "cells": [
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-fable-5.1",
+      "effort": "max",
+      "runs": 60,
+      "pass": 55,
+      "partial": 0,
+      "fail": 5
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-opus-5.5",
+      "effort": "high",
+      "runs": 78,
+      "pass": 67,
+      "partial": 0,
+      "fail": 11
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-opus-5.5",
+      "effort": "low",
+      "runs": 78,
+      "pass": 64,
+      "partial": 0,
+      "fail": 14
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-opus-5.5",
+      "effort": "medium",
+      "runs": 77,
+      "pass": 61,
+      "partial": 0,
+      "fail": 16
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-sonnet-5.5",
+      "effort": "high",
+      "runs": 78,
+      "pass": 65,
+      "partial": 0,
+      "fail": 13
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-sonnet-5.5",
+      "effort": "low",
+      "runs": 78,
+      "pass": 60,
+      "partial": 0,
+      "fail": 18
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-sonnet-5.5",
+      "effort": "medium",
+      "runs": 78,
+      "pass": 61,
+      "partial": 0,
+      "fail": 17
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-astra",
+      "effort": "ultra",
+      "runs": 77,
+      "pass": 66,
+      "partial": 0,
+      "fail": 11
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-luna",
+      "effort": "high",
+      "runs": 78,
+      "pass": 59,
+      "partial": 0,
+      "fail": 19
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-luna",
+      "effort": "low",
+      "runs": 78,
+      "pass": 51,
+      "partial": 0,
+      "fail": 27
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6-luna",
+      "effort": "medium",
+      "runs": 78,
+      "pass": 53,
+      "partial": 0,
+      "fail": 25
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6.1-sol",
+      "effort": "high",
+      "runs": 78,
+      "pass": 64,
+      "partial": 0,
+      "fail": 14
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6.1-sol",
+      "effort": "low",
+      "runs": 78,
+      "pass": 63,
+      "partial": 0,
+      "fail": 15
+    },
+    {
+      "harness": "codex",
+      "model": "openai/gpt-6.1-sol",
+      "effort": "medium",
+      "runs": 78,
+      "pass": 64,
+      "partial": 0,
+      "fail": 14
+    }
+  ],
+  "rejected": 20,
+  "prices": {
+    "priced": "at_publish",
+    "unit": "USD per 1M tokens",
+    "openrouter": {
+      "fetched_at": "2026-10-10T01:45:53.775Z"
+    },
+    "models": {
+      "anthropic/claude-fable-5.1": {
+        "input": {
+          "usd": 10,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.25,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 20,
+          "source": "official",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "date": "2026-10-07"
+        },
+        "output": {
+          "usd": 50,
+          "source": "openrouter"
+        }
+      },
+      "anthropic/claude-opus-5.5": {
+        "input": {
+          "usd": 4,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.2,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 8,
+          "source": "official",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "date": "2026-10-07"
+        },
+        "output": {
+          "usd": 20,
+          "source": "openrouter"
+        }
+      },
+      "anthropic/claude-sonnet-5.5": {
+        "input": {
+          "usd": 2,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 4,
+          "source": "official",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "date": "2026-10-07"
+        },
+        "output": {
+          "usd": 10,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6-astra": {
+        "input": {
+          "usd": 10,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 1,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 12.5,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 50,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6-luna": {
+        "input": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.01,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 0.125,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 0.5,
+          "source": "openrouter"
+        }
+      },
+      "openai/gpt-6.1-sol": {
+        "input": {
+          "usd": 2,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 2.5,
+          "source": "openrouter"
+        },
+        "output": {
+          "usd": 10,
+          "source": "openrouter"
+        }
+      }
+    }
+  }
+}
