@@ -47,9 +47,10 @@ jobs:
           new=$(content snapshot.json)
           # No release yet: publish. Any other error fails the job.
           if latest=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>view.err); then
-            gh release download "$latest" --repo "$GITHUB_REPOSITORY" --pattern 'snapshot.json*' --dir previous
-            # Skip only when the latest release is complete and holds the same content.
-            if [ -f previous/snapshot.json.sha256 ] && (cd previous && sha256sum --check --status snapshot.json.sha256) \
+            # A latest release without the assets is incomplete: publish again.
+            if gh release download "$latest" --repo "$GITHUB_REPOSITORY" --pattern 'snapshot.json*' --dir previous \
+              && [ -f previous/snapshot.json ] && [ -f previous/snapshot.json.sha256 ] \
+              && [ "$(cut -d ' ' -f 1 previous/snapshot.json.sha256)" = "$(sha256sum previous/snapshot.json | cut -d ' ' -f 1)" ] \
               && [ "$(content previous/snapshot.json)" = "$new" ]; then
               echo "Content $new is unchanged since $latest: nothing to publish."
               exit 0
@@ -62,7 +63,13 @@ jobs:
           fi
           sha256sum snapshot.json > snapshot.json.sha256
           tag="snapshot-$(date -u +%F)-${SHA:0:7}"
-          gh release create "$tag" snapshot.json snapshot.json.sha256 \
-            --repo "$GITHUB_REPOSITORY" --target "$SHA" --latest \
-            --title "Snapshot $tag" \
-            --notes "Aggregated spatz-snapshot/1 of every run on $SHA. Content sha256 $new."
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # A rerun of the same commit on the same day repairs its release.
+            gh release upload "$tag" snapshot.json snapshot.json.sha256 --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --latest
+          else
+            gh release create "$tag" snapshot.json snapshot.json.sha256 \
+              --repo "$GITHUB_REPOSITORY" --target "$SHA" --latest \
+              --title "Snapshot $tag" \
+              --notes "Aggregated spatz-snapshot/1 of every run on $SHA. Content sha256 $new."
+          fi
