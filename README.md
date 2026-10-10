@@ -1,6 +1,6 @@
 # spatz-measurements
 
-Results of spatz benchmark runs: which model, at which effort, passed which kind of task, at what token cost. [spatz](https://github.com/lorenzh/spatz) imports the rows as outcome data before live use.
+Results of spatz benchmark runs: which model, at which effort, passed which kind of task, at what token cost. [spatz](https://github.com/lorenzh/spatz) downloads the aggregated [snapshot](#snapshot-releases) of these rows and uses it as a capped prior; it can also import the rows themselves.
 
 All files are written by the bench runner's publish step. Each run is one self-contained folder and arrives as one pull request on a branch `results/<run-id>` that only adds that folder. There are no shared files, so two results PRs never conflict. Do not edit the files by hand.
 
@@ -11,7 +11,9 @@ All files are written by the bench runner's publish step. Each run is one self-c
 ├── README.md
 ├── .gitattributes
 ├── .github/workflows/check-runs.yml   # checks every pull request
+├── .github/workflows/snapshot.yml     # publishes the snapshot release on every merge
 ├── scripts/check-runs.mjs             # the check, Node only
+├── scripts/snapshot.mjs               # builds the snapshot, Node only
 └── runs/
     └── <date>-<run-id>/               # one self-contained folder per published run
         ├── manifest.json
@@ -228,6 +230,45 @@ Estimated cost per model at list prices:
 ```sh
 sqlite3 measurements.db "SELECT model, count(*) AS runs, round(sum(estimated_cost_usd), 4) AS estimated_usd FROM rows GROUP BY model"
 ```
+
+## Snapshot releases
+
+Every merge to `main` builds one aggregated snapshot of all runs and publishes it as a GitHub Release (`.github/workflows/snapshot.yml`). spatz downloads the latest one:
+
+```text
+https://github.com/lorenzh/spatz-measurements/releases/latest/download/snapshot.json
+https://github.com/lorenzh/spatz-measurements/releases/latest/download/snapshot.json.sha256
+```
+
+- The tag is `snapshot-<YYYY-MM-DD>-<shortsha>` (UTC date of the publish, 7 hex digits of the commit). The release is marked latest.
+- `snapshot.json.sha256` is the `sha256sum` line of `snapshot.json`.
+- When the latest release has both assets, its checksum matches and its `content_sha256` equals the new one, the workflow publishes nothing. A docs or workflow change therefore makes no new release.
+- The workflow never commits to `main`. It runs on push to `main` and by hand (`workflow_dispatch`). It publishes only from `main`, and only while the run's commit is still the head of `main`, so a rerun of an older run cannot publish stale data.
+
+### `snapshot.json`
+
+One JSON object on one line, schema `spatz-snapshot/1`. Every object has sorted keys, so the same rows and commit always give the same bytes. It holds counts and means only: no task ids, no row `run_id`s and no row-level data.
+
+| Field | Content |
+|-------|---------|
+| `schema` | `spatz-snapshot/1` |
+| `generated_at` | Commit time of the source commit, ISO 8601 UTC |
+| `source` | `repository` and the full `commit` sha the snapshot was built from |
+| `content_sha256` | SHA-256 of the sorted-key JSON of `excluded_bench_versions`, `runs`, `models` and `cells` |
+| `excluded_bench_versions` | Bench versions listed in `runs` but not counted: `prototype`, which was code-only and easier |
+| `runs` | Every run folder: `run_id`, `folder`, `bench_version`, `rows` and `included` (false for an excluded bench version) |
+| `models` | Per model, over all counted rows: `n`, `pass`, `partial`, `fail`, `mean_estimated_cost_usd`, `mean_duration_s` |
+| `cells` | One entry per `model`, `model_version`, `effort`, `task_type` and `difficulty` with the same counts and means, `bench_versions` and `runs` (the run ids it includes) |
+
+`mean_estimated_cost_usd` is the mean over the rows that have an estimate, or `null` when none has one. Means are rounded to 7 (cost) and 2 (duration) decimals.
+
+Example cell:
+
+```json
+{"bench_versions":["1"],"difficulty":"easy","effort":"max","fail":0,"mean_duration_s":203.42,"mean_estimated_cost_usd":1.7745962,"model":"anthropic/claude-fable-5.1","model_version":null,"n":4,"partial":0,"pass":4,"runs":["37028323f6e6"],"task_type":"code.bugfix"}
+```
+
+Build it locally (Node only): `node scripts/snapshot.mjs --out snapshot.json`. Run the tests with `node --test scripts/snapshot.test.mjs`. The PR check runs them too.
 
 ## What is published
 
