@@ -1,0 +1,53 @@
+name: Snapshot
+
+# Every merge to main publishes the aggregated snapshot as a GitHub Release.
+# It never commits; the review happens at the results PR.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Tests of the snapshot script
+        run: node --test scripts/snapshot.test.mjs
+      - name: Build the snapshot
+        run: node scripts/snapshot.mjs --out "$RUNNER_TEMP/snapshot.json"
+      - name: Publish a release unless the content is unchanged
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          cd "$RUNNER_TEMP"
+          content() { node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).content_sha256' "$1"; }
+          new=$(content snapshot.json)
+          old=""
+          # No release yet, or one without a snapshot: publish.
+          if gh release download --repo "$GITHUB_REPOSITORY" --pattern snapshot.json --dir previous 2>/dev/null; then
+            old=$(content previous/snapshot.json)
+          fi
+          if [ "$new" = "$old" ]; then
+            echo "Content $new is unchanged since the latest release: nothing to publish."
+            exit 0
+          fi
+          sha256sum snapshot.json > snapshot.json.sha256
+          tag="snapshot-$(date -u +%F)-${SHA:0:7}"
+          gh release create "$tag" snapshot.json snapshot.json.sha256 \
+            --repo "$GITHUB_REPOSITORY" --target "$SHA" --latest \
+            --title "Snapshot $tag" \
+            --notes "Aggregated spatz-snapshot/1 of every run on $SHA. Content sha256 $new."
