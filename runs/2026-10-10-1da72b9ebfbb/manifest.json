@@ -1,0 +1,71 @@
+{
+  "run_id": "1da72b9ebfbb",
+  "bench_version": "1",
+  "started_at": "2026-10-10T02:32:17.710Z",
+  "finished_at": "2026-10-10T06:09:31.242Z",
+  "runs": 233,
+  "results": {
+    "pass": 192,
+    "partial": 0,
+    "fail": 41
+  },
+  "cells": [
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-haiku-5.5",
+      "effort": "high",
+      "runs": 78,
+      "pass": 63,
+      "partial": 0,
+      "fail": 15
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-haiku-5.5",
+      "effort": "low",
+      "runs": 78,
+      "pass": 66,
+      "partial": 0,
+      "fail": 12
+    },
+    {
+      "harness": "claude-code",
+      "model": "anthropic/claude-haiku-5.5",
+      "effort": "medium",
+      "runs": 77,
+      "pass": 63,
+      "partial": 0,
+      "fail": 14
+    }
+  ],
+  "rejected": 1,
+  "prices": {
+    "priced": "at_publish",
+    "unit": "USD per 1M tokens",
+    "openrouter": {
+      "fetched_at": "2026-10-10T06:09:44.860Z"
+    },
+    "models": {
+      "anthropic/claude-haiku-5.5": {
+        "input": {
+          "usd": 0.1,
+          "source": "openrouter"
+        },
+        "cache_read": {
+          "usd": 0.01,
+          "source": "openrouter"
+        },
+        "cache_write": {
+          "usd": 0.2,
+          "source": "official",
+          "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+          "date": "2026-10-10"
+        },
+        "output": {
+          "usd": 0.5,
+          "source": "openrouter"
+        }
+      }
+    }
+  }
+}
