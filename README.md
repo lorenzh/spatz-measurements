@@ -242,8 +242,8 @@ https://github.com/lorenzh/spatz-measurements/releases/latest/download/snapshot.
 
 - The tag is `snapshot-<YYYY-MM-DD>-<shortsha>` (UTC date of the publish, 7 hex digits of the commit). The release is marked latest.
 - `snapshot.json.sha256` is the `sha256sum` line of `snapshot.json`.
-- When `content_sha256` equals the one of the latest release, the workflow publishes nothing. A docs or workflow change therefore makes no new release.
-- The workflow never commits to `main`. It runs on push to `main` and by hand (`workflow_dispatch`).
+- When the latest release has both assets, its checksum matches and its `content_sha256` equals the new one, the workflow publishes nothing. A docs or workflow change therefore makes no new release.
+- The workflow never commits to `main`. It runs on push to `main` and by hand (`workflow_dispatch`). It publishes only from `main`, and only while the run's commit is still the head of `main`, so a rerun of an older run cannot publish stale data.
 
 ### `snapshot.json`
 
