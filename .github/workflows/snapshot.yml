@@ -1,0 +1,75 @@
+name: Snapshot
+
+# Every merge to main publishes the aggregated snapshot as a GitHub Release.
+# It never commits; the review happens at the results PR.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Only main publishes; a dispatch from another branch does nothing.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Tests of the snapshot script
+        run: node --test scripts/snapshot.test.mjs
+      - name: Build the snapshot
+        run: node scripts/snapshot.mjs --out "$RUNNER_TEMP/snapshot.json"
+      - name: Publish a release unless the content is unchanged
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          # A rerun of an older run must not publish stale data as latest.
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [ "$head" != "$SHA" ]; then
+            echo "main is at $head, not $SHA: nothing to publish."
+            exit 0
+          fi
+          content() { node -p 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).content_sha256' "$1"; }
+          new=$(content snapshot.json)
+          # No release yet: publish. Any other error fails the job.
+          if latest=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>view.err); then
+            # A latest release without the assets is incomplete: publish again.
+            if gh release download "$latest" --repo "$GITHUB_REPOSITORY" --pattern 'snapshot.json*' --dir previous \
+              && [ -f previous/snapshot.json ] && [ -f previous/snapshot.json.sha256 ] \
+              && [ "$(cut -d ' ' -f 1 previous/snapshot.json.sha256)" = "$(sha256sum previous/snapshot.json | cut -d ' ' -f 1)" ] \
+              && [ "$(content previous/snapshot.json)" = "$new" ]; then
+              echo "Content $new is unchanged since $latest: nothing to publish."
+              exit 0
+            fi
+          elif grep -q "release not found" view.err; then
+            echo "No release yet."
+          else
+            cat view.err >&2
+            exit 1
+          fi
+          sha256sum snapshot.json > snapshot.json.sha256
+          tag="snapshot-$(date -u +%F)-${SHA:0:7}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # A rerun of the same commit on the same day repairs its release.
+            gh release upload "$tag" snapshot.json snapshot.json.sha256 --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --latest
+          else
+            gh release create "$tag" snapshot.json snapshot.json.sha256 \
+              --repo "$GITHUB_REPOSITORY" --target "$SHA" --latest \
+              --title "Snapshot $tag" \
+              --notes "Aggregated spatz-snapshot/1 of every run on $SHA. Content sha256 $new."
+          fi

@@ -38,3 +38,5 @@ jobs:
         run: node "$RUNNER_TEMP/check-runs.mjs" --pr "$BASE_SHA"
       - name: Tests of the check script
         run: node --test scripts/check-runs.test.mjs
+      - name: Tests of the snapshot script
+        run: node --test scripts/snapshot.test.mjs
